@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_ai_agent_chat_wizard_form" model="ir.ui.view">
+        <field name="name">ai.agent.chat.wizard.form</field>
+        <field name="model">ai.agent.chat</field>
+        <field name="arch" type="xml">
+            <form string="AI Assistant">
+                <sheet>
+                    <!-- Quick action bar -->
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        <button name="action_quick_end_to_end_usecase" type="object" string="🚀 Full Use Case (Sales + Purchase)" class="btn btn-sm btn-primary fw-bold"/>
+                        <button name="action_quick_pipeline" type="object" string="📊 Summarize Pipeline" class="btn btn-sm btn-outline-info"/>
+                        <button name="action_quick_quote" type="object" string="📝 Create Quote for Azure" class="btn btn-sm btn-outline-success"/>
+                        <button name="action_quick_send_rfq" type="object" string="📤 Send RFQ to All Suppliers" class="btn btn-sm btn-outline-warning"/>
+                        <button name="action_quick_analyze_offers" type="object" string="📈 Analyze Supplier Offers" class="btn btn-sm btn-outline-secondary"/>
+                        <button name="action_quick_composite_desk" type="object" string="🛠️ Build Composite Desk" class="btn btn-sm btn-outline-primary"/>
+                        <button name="action_quick_replenishment" type="object" string="📦 Inventory Replenishment" class="btn btn-sm btn-outline-warning"/>
+                        <button name="action_quick_create_tracked_product" type="object" string="🏷️ Create Product (Track Inventory)" class="btn btn-sm btn-outline-success"/>
+                        <button name="action_quick_tracking" type="object" string="🔍 Track Inventory" class="btn btn-sm btn-outline-dark"/>
+                        <button name="action_reset_chat" type="object" string="🗑️ Reset Chat" class="btn btn-sm btn-outline-danger ms-auto"/>
+                    </div>
+
+                    <!-- Alert banner if sale order was created -->
+                    <div class="alert alert-success d-flex align-items-center justify-content-between p-2 mb-3" role="alert" invisible="not last_order_id">
+                        <div>
+                            <strong>✨ Quotation Created!</strong>
+                            <span class="ms-2">A new draft sales quotation is ready for your review.</span>
+                        </div>
+                        <button name="action_view_order" type="object" string="Open Quotation" class="btn btn-sm btn-success" icon="fa-external-link"/>
+                    </div>
+
+                    <!-- Alert banner if purchase order was created -->
+                    <div class="alert alert-warning d-flex align-items-center justify-content-between p-2 mb-3" role="alert" invisible="not last_po_id">
+                        <div>
+                            <strong>📋 Purchase Order / RFQ Created!</strong>
+                            <span class="ms-2">A new purchase order draft is ready for supplier validation.</span>
+                        </div>
+                        <button name="action_view_po" type="object" string="Open Purchase Order" class="btn btn-sm btn-warning" icon="fa-external-link"/>
+                    </div>
+
+                    <!-- Alert banner if product was created -->
+                    <div class="alert alert-primary d-flex align-items-center justify-content-between p-2 mb-3" role="alert" invisible="not last_product_id">
+                        <div>
+                            <strong>✨ Product Created!</strong>
+                            <span class="ms-2">The product and its components are available in the catalog.</span>
+                        </div>
+                        <button name="action_view_product" type="object" string="Open Product" class="btn btn-sm btn-primary" icon="fa-external-link"/>
+                    </div>
+
+                    <!-- Chat scroll area -->
+                    <div class="mb-3">
+                        <field name="chat_html" widget="html" readonly="1" nolabel="1"/>
+                    </div>
+
+                    <!-- Input box -->
+                    <div class="mt-2">
+                        <field name="user_message" placeholder="Ask AI Agent (e.g. 'Create purchase order for Apex Supplies for 10 Desks', 'Send price quotation for Desk to all suppliers', 'Analyze supplier offers for Desk', 'Create a product Desk that consists of Table Top and 4 Legs')..." widget="text" rows="2" class="form-control"/>
+                    </div>
+                </sheet>
+                <footer>
+                    <button name="action_send_message" string="Send" type="object" class="btn-primary" icon="fa-paper-plane"/>
+                    <button string="Close" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_ai_agent_chat" model="ir.actions.act_window">
+        <field name="name">AI Agent</field>
+        <field name="res_model">ai.agent.chat</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

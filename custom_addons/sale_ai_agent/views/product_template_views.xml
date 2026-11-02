@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="product_template_form_view_inherit_composite" model="ir.ui.view">
+        <field name="name">product.template.form.inherit.composite</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_only_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='options']" position="inside">
+                <span class="d-inline-block">
+                    <field name="is_composite"/>
+                    <label for="is_composite" string="Composite / Assembly"/>
+                </span>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page string="Components / Assembly" name="components" invisible="not is_composite">
+                    <group>
+                        <field name="total_components_cost" readonly="1" widget="monetary"/>
+                    </group>
+                    <field name="component_line_ids">
+                        <list editable="bottom">
+                            <field name="sequence" widget="handle"/>
+                            <field name="product_id" domain="[('id', '!=', parent.id)]"/>
+                            <field name="quantity"/>
+                            <field name="uom_id"/>
+                            <field name="cost_price" widget="monetary"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

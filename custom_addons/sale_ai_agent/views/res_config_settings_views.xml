@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_inherit_ai_agent" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.ai.agent</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="30"/>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//app[@name='sale_management']" position="inside">
+                <block title="Sales AI Agent" id="sales_ai_agent_settings">
+                    <setting id="ai_provider_setting" string="AI Backend &amp; Model" help="Configure the LLM provider, API base, and model for your sales agent.">
+                        <div class="content-group">
+                            <div class="row mt16">
+                                <label for="ai_provider" class="col-lg-3 o_light_label"/>
+                                <field name="ai_provider" class="col-lg-9"/>
+                            </div>
+                            <div class="row mt8">
+                                <label for="ai_api_key" class="col-lg-3 o_light_label"/>
+                                <field name="ai_api_key" password="True" class="col-lg-9"/>
+                            </div>
+                            <div class="row mt8" invisible="ai_provider not in ('openai_compatible', 'anthropic')">
+                                <label for="ai_api_base" class="col-lg-3 o_light_label"/>
+                                <field name="ai_api_base" class="col-lg-9"/>
+                            </div>
+                            <div class="row mt8">
+                                <label for="ai_model" class="col-lg-3 o_light_label"/>
+                                <field name="ai_model" class="col-lg-9"/>
+                            </div>
+                            <div class="row mt8">
+                                <label for="ai_temperature" class="col-lg-3 o_light_label"/>
+                                <field name="ai_temperature" class="col-lg-9"/>
+                            </div>
+                        </div>
+                    </setting>
+                    <setting id="ai_system_prompt_setting" string="System Prompt" help="Customize the personality, goals, and guidance for your Sales AI Agent.">
+                        <div class="content-group mt8">
+                            <field name="ai_system_prompt" rows="4"/>
+                        </div>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+</odoo>

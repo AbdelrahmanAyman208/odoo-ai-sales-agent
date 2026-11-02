@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_ai_sale_followup_wizard_form" model="ir.ui.view">
+        <field name="name">ai.sale.followup.wizard.form</field>
+        <field name="model">ai.sale.followup.wizard</field>
+        <field name="arch" type="xml">
+            <form string="AI Follow-up Email">
+                <sheet>
+                    <div class="alert alert-info d-flex align-items-center mb-3" role="alert">
+                        <i class="fa fa-info-circle fa-2x me-3"/>
+                        <div>
+                            <strong>AI Draft Generator:</strong> Review the settings, tweak custom instructions, or click <em>Regenerate with AI</em> to update the draft. When satisfied, click <em>Send Email</em> to post to the chatter and notify the customer.
+                        </div>
+                    </div>
+                    <group>
+                        <group string="Target &amp; Style">
+                            <field name="partner_id" readonly="1"/>
+                            <field name="order_id" readonly="1" invisible="not order_id"/>
+                            <field name="lead_id" readonly="1" invisible="not lead_id"/>
+                            <field name="tone"/>
+                        </group>
+                        <group string="Guidance for AI">
+                            <field name="custom_instructions" placeholder="e.g. mention that this price is valid until Friday, offer 5% discount..."/>
+                        </group>
+                    </group>
+                    <div class="d-flex justify-content-end mb-2">
+                        <button name="action_generate_draft" string="Regenerate with AI" type="object" class="btn btn-outline-primary" icon="fa-refresh"/>
+                    </div>
+                    <notebook>
+                        <page string="Email Preview &amp; Edit" name="email_draft">
+                            <group>
+                                <field name="email_subject" placeholder="Email subject line..."/>
+                            </group>
+                            <field name="email_body" widget="html" options="{'style-inline': true}"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <footer>
+                    <button name="action_send_email" string="Send Email" type="object" class="btn-primary" icon="fa-paper-plane"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

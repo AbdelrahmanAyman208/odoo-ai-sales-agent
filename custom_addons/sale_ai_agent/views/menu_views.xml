@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Sales App Menus -->
+    <menuitem id="menu_sales_ai_agent_root"
+              name="AI Assistant"
+              parent="sale.sale_menu_root"
+              sequence="50"/>
+
+    <menuitem id="menu_sales_ai_chat"
+              name="AI Agent Chat"
+              parent="menu_sales_ai_agent_root"
+              action="action_ai_agent_chat"
+              sequence="10"/>
+
+    <menuitem id="menu_sales_ai_logs"
+              name="Sales Action History"
+              parent="menu_sales_ai_agent_root"
+              action="action_ai_agent_log"
+              sequence="20"/>
+
+    <!-- CRM App Menus -->
+    <menuitem id="menu_crm_ai_chat"
+              name="AI Pipeline Assistant"
+              parent="crm.crm_menu_root"
+              action="action_ai_agent_chat"
+              sequence="60"/>
+
+    <!-- Purchase App Menus -->
+    <menuitem id="menu_purchase_ai_agent_root"
+              name="AI Assistant"
+              parent="purchase.menu_purchase_root"
+              sequence="50"/>
+
+    <menuitem id="menu_purchase_ai_chat"
+              name="AI Agent Chat"
+              parent="menu_purchase_ai_agent_root"
+              action="action_ai_agent_chat"
+              sequence="10"/>
+
+    <menuitem id="menu_purchase_ai_logs"
+              name="Action History"
+              parent="menu_purchase_ai_agent_root"
+              action="action_ai_agent_log"
+              sequence="20"/>
+</odoo>

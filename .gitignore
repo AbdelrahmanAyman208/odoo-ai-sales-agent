@@ -1,0 +1,25 @@
+# Odoo Core & Submodules
+odoo20/
+*.conf
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Environments & Local Configs
+.env
+.venv
+env/
+venv/
+ENV/
+*.log
+
+# IDEs & OS files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.DS_Store
+Thumbs.db
