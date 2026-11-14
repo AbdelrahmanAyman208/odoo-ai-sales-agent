@@ -1,43 +1,98 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <record id="res_config_settings_view_form_inherit_ai_agent" model="ir.ui.view">
-        <field name="name">res.config.settings.view.form.inherit.ai.agent</field>
+        <field name="name">res.config.settings.view.form.inherit.sale.ai.agent</field>
         <field name="model">res.config.settings</field>
-        <field name="priority" eval="30"/>
+        <field name="priority" eval="90"/>
         <field name="inherit_id" ref="base.res_config_settings_view_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//app[@name='sale_management']" position="inside">
-                <block title="Sales AI Agent" id="sales_ai_agent_settings">
-                    <setting id="ai_provider_setting" string="AI Backend &amp; Model" help="Configure the LLM provider, API base, and model for your sales agent.">
-                        <div class="content-group">
-                            <div class="row mt16">
-                                <label for="ai_provider" class="col-lg-3 o_light_label"/>
-                                <field name="ai_provider" class="col-lg-9"/>
+            <xpath expr="//form" position="inside">
+                <app data-string="AI Operations Agent" string="AI Operations Agent" name="sale_ai_agent">
+                    <block title="OpenAI / OpenRouter LLM Configuration" name="ai_agent_llm_settings">
+                        <setting string="API Endpoint &amp; Authentication" help="Configure your OpenAI-compatible endpoint (OpenRouter, vLLM, Ollama, OpenAI).">
+                            <div class="content-group">
+                                <div class="row mt16">
+                                    <label for="ai_api_base" class="col-lg-3 o_light_label"/>
+                                    <field name="ai_api_base" class="col-lg-9"/>
+                                </div>
+                                <div class="row mt8">
+                                    <label for="ai_api_key" class="col-lg-3 o_light_label"/>
+                                    <field name="ai_api_key" password="True" class="col-lg-9"/>
+                                </div>
+                                <div class="row mt8">
+                                    <label for="ai_model" class="col-lg-3 o_light_label"/>
+                                    <field name="ai_model" class="col-lg-9"/>
+                                </div>
+                                <div class="mt16">
+                                    <button name="action_test_llm_connection" type="object" string="🔌 Test LLM Connection" class="btn btn-outline-primary"/>
+                                </div>
                             </div>
-                            <div class="row mt8">
-                                <label for="ai_api_key" class="col-lg-3 o_light_label"/>
-                                <field name="ai_api_key" password="True" class="col-lg-9"/>
+                        </setting>
+
+                        <setting string="Rate Limiting &amp; Quota Guard" help="Shared rate limiter token bucket to prevent 429 errors on free models.">
+                            <div class="content-group">
+                                <div class="row mt8">
+                                    <label for="ai_rpm_limit" class="col-lg-4 o_light_label"/>
+                                    <field name="ai_rpm_limit" class="col-lg-4"/>
+                                </div>
+                                <div class="row mt8">
+                                    <label for="ai_daily_budget" class="col-lg-4 o_light_label"/>
+                                    <field name="ai_daily_budget" class="col-lg-4"/>
+                                </div>
+                                <div class="row mt8">
+                                    <label for="ai_redis_url" class="col-lg-4 o_light_label"/>
+                                    <field name="ai_redis_url" class="col-lg-8" placeholder="redis://localhost:6379/0"/>
+                                </div>
                             </div>
-                            <div class="row mt8" invisible="ai_provider not in ('openai_compatible', 'anthropic')">
-                                <label for="ai_api_base" class="col-lg-3 o_light_label"/>
-                                <field name="ai_api_base" class="col-lg-9"/>
+                        </setting>
+
+                        <setting string="Generation Parameters" help="Set token caps and timeout settings.">
+                            <div class="content-group">
+                                <div class="row mt8">
+                                    <label for="ai_max_tokens" class="col-lg-4 o_light_label"/>
+                                    <field name="ai_max_tokens" class="col-lg-4"/>
+                                </div>
+                                <div class="row mt8">
+                                    <label for="ai_temperature" class="col-lg-4 o_light_label"/>
+                                    <field name="ai_temperature" class="col-lg-4"/>
+                                </div>
+                                <div class="row mt8">
+                                    <label for="ai_timeout" class="col-lg-4 o_light_label"/>
+                                    <field name="ai_timeout" class="col-lg-4"/>
+                                </div>
                             </div>
-                            <div class="row mt8">
-                                <label for="ai_model" class="col-lg-3 o_light_label"/>
-                                <field name="ai_model" class="col-lg-9"/>
+                        </setting>
+
+                        <setting string="Agent System Prompt" help="Core system instructions for the autonomous agent.">
+                            <div class="content-group">
+                                <field name="ai_system_prompt" widget="text" rows="4" class="w-100"/>
                             </div>
-                            <div class="row mt8">
-                                <label for="ai_temperature" class="col-lg-3 o_light_label"/>
-                                <field name="ai_temperature" class="col-lg-9"/>
+                        </setting>
+                    </block>
+
+                    <block title="T2 Human Approval &amp; Risk Control" name="ai_agent_approval_settings">
+                        <setting string="Approval Expiry &amp; Limits" help="Safety caps for Tier 2 operations (confirmations, financial commits).">
+                            <div class="content-group">
+                                <div class="row mt8">
+                                    <label for="ai_approval_expiry_minutes" class="col-lg-4 o_light_label"/>
+                                    <field name="ai_approval_expiry_minutes" class="col-lg-4"/>
+                                </div>
+                                <div class="row mt8">
+                                    <label for="ai_approval_max_records" class="col-lg-4 o_light_label"/>
+                                    <field name="ai_approval_max_records" class="col-lg-4"/>
+                                </div>
+                                <div class="mt8">
+                                    <field name="ai_approval_allow_manager"/>
+                                    <label for="ai_approval_allow_manager" class="o_light_label ms-2"/>
+                                </div>
+                                <div class="mt8">
+                                    <field name="ai_approval_require_reauth"/>
+                                    <label for="ai_approval_require_reauth" class="o_light_label ms-2"/>
+                                </div>
                             </div>
-                        </div>
-                    </setting>
-                    <setting id="ai_system_prompt_setting" string="System Prompt" help="Customize the personality, goals, and guidance for your Sales AI Agent.">
-                        <div class="content-group mt8">
-                            <field name="ai_system_prompt" rows="4"/>
-                        </div>
-                    </setting>
-                </block>
+                        </setting>
+                    </block>
+                </app>
             </xpath>
         </field>
     </record>

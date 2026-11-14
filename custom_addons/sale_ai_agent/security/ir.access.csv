@@ -5,3 +5,8 @@ access_ai_sale_followup_wizard_salesman,ai.sale.followup.wizard salesman,ai.sale
 access_ai_agent_chat_salesman,ai.agent.chat salesman,ai.agent.chat,sales_team.group_sale_salesman,crud,
 access_product_combo_line_salesman,product.combo.line salesman,product.combo.line,sales_team.group_sale_salesman,crud,
 access_product_combo_line_manager,product.combo.line manager,product.combo.line,sales_team.group_sale_manager,crud,
+access_ai_agent_approval_user,ai.agent.approval user,ai.agent.approval,base.group_user,crud,
+access_ai_agent_use_case_user,ai.agent.use.case user,ai.agent.use.case,base.group_user,crud,
+access_ai_agent_task_user,ai.agent.task user,ai.agent.task,base.group_user,crud,
+access_ai_quality_point_user,ai.quality.point user,ai.quality.point,base.group_user,crud,
+access_ai_quality_check_user,ai.quality.check user,ai.quality.check,base.group_user,crud,

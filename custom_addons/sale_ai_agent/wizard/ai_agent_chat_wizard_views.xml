@@ -8,16 +8,16 @@
                 <sheet>
                     <!-- Quick action bar -->
                     <div class="d-flex flex-wrap gap-2 mb-3">
-                        <button name="action_quick_end_to_end_usecase" type="object" string="🚀 Full Use Case (Sales + Purchase)" class="btn btn-sm btn-primary fw-bold"/>
-                        <button name="action_quick_pipeline" type="object" string="📊 Summarize Pipeline" class="btn btn-sm btn-outline-info"/>
-                        <button name="action_quick_quote" type="object" string="📝 Create Quote for Azure" class="btn btn-sm btn-outline-success"/>
-                        <button name="action_quick_send_rfq" type="object" string="📤 Send RFQ to All Suppliers" class="btn btn-sm btn-outline-warning"/>
-                        <button name="action_quick_analyze_offers" type="object" string="📈 Analyze Supplier Offers" class="btn btn-sm btn-outline-secondary"/>
-                        <button name="action_quick_composite_desk" type="object" string="🛠️ Build Composite Desk" class="btn btn-sm btn-outline-primary"/>
-                        <button name="action_quick_replenishment" type="object" string="📦 Inventory Replenishment" class="btn btn-sm btn-outline-warning"/>
-                        <button name="action_quick_create_tracked_product" type="object" string="🏷️ Create Product (Track Inventory)" class="btn btn-sm btn-outline-success"/>
-                        <button name="action_quick_tracking" type="object" string="🔍 Track Inventory" class="btn btn-sm btn-outline-dark"/>
-                        <button name="action_reset_chat" type="object" string="🗑️ Reset Chat" class="btn btn-sm btn-outline-danger ms-auto"/>
+                        <button name="action_quick_end_to_end_usecase" type="object" string="🚀 Full Flow (Sales + MRP + PO)" class="btn btn-sm btn-primary fw-bold"/>
+                        <button name="action_quick_crm_lead_gen" type="object" string="🎯 Lead Generation" class="btn btn-sm btn-outline-info"/>
+                        <button name="action_quick_pipeline" type="object" string="📊 CRM Pipeline" class="btn btn-sm btn-outline-info"/>
+                        <button name="action_quick_quote" type="object" string="📝 Create Quote" class="btn btn-sm btn-outline-success"/>
+                        <button name="action_quick_loyalty_promo" type="object" string="🎁 15% Promo Code" class="btn btn-sm btn-outline-success"/>
+                        <button name="action_quick_project_task" type="object" string="📋 Project &amp; Task" class="btn btn-sm btn-outline-primary"/>
+                        <button name="action_quick_replenishment" type="object" string="📦 Replenishment" class="btn btn-sm btn-outline-warning"/>
+                        <button name="action_quick_analyze_offers" type="object" string="📈 Vendor Offers" class="btn btn-sm btn-outline-secondary"/>
+                        <button type="button" class="btn btn-sm btn-outline-secondary o_ai_chat_hide_btn fw-bold ms-auto" title="Minimize / Hide Chatbot to bottom dock">➖ Minimize (—)</button>
+                        <button name="action_reset_chat" type="object" string="🗑️ Reset Chat" class="btn btn-sm btn-outline-danger"/>
                     </div>
 
                     <!-- Alert banner if sale order was created -->
@@ -47,6 +47,18 @@
                         <button name="action_view_product" type="object" string="Open Product" class="btn btn-sm btn-primary" icon="fa-external-link"/>
                     </div>
 
+                    <!-- Alert banner if T2 approval is pending -->
+                    <div class="alert alert-danger d-flex align-items-center justify-content-between p-2 mb-3" role="alert" invisible="not last_approval_id">
+                        <div>
+                            <strong>🛡️ Human Approval Required!</strong>
+                            <span class="ms-2">A T2 operation needs your review and confirmation.</span>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button name="action_open_approval_target" type="object" string="🔍 Go to Record" class="btn btn-sm btn-outline-danger" icon="fa-external-link" title="Open the target record (Purchase/Sales Order) directly to review and confirm"/>
+                            <button name="action_view_approval" type="object" string="📋 Open Approval" class="btn btn-sm btn-danger" icon="fa-shield" title="Open the Approval card to review details and execute the two-step confirmation"/>
+                        </div>
+                    </div>
+
                     <!-- Chat scroll area -->
                     <div class="mb-3">
                         <field name="chat_html" widget="html" readonly="1" nolabel="1"/>
@@ -54,19 +66,19 @@
 
                     <!-- Input box -->
                     <div class="mt-2">
-                        <field name="user_message" placeholder="Ask AI Agent (e.g. 'Create purchase order for Apex Supplies for 10 Desks', 'Send price quotation for Desk to all suppliers', 'Analyze supplier offers for Desk', 'Create a product Desk that consists of Table Top and 4 Legs')..." widget="text" rows="2" class="form-control"/>
+                        <field name="user_message" placeholder="Ask AI Agent (e.g. 'Create CRM lead for TechCorp', 'Apply 10% promo to SO002', 'Setup project for office move', 'Generate 20 coupons')..." widget="text" rows="2" class="form-control"/>
                     </div>
                 </sheet>
                 <footer>
-                    <button name="action_send_message" string="Send" type="object" class="btn-primary" icon="fa-paper-plane"/>
-                    <button string="Close" class="btn-secondary" special="cancel"/>
+                    <button name="action_send_message" string="Send 🚀" type="object" class="btn btn-primary"/>
+                    <button string="Close" class="btn btn-secondary" special="cancel"/>
                 </footer>
             </form>
         </field>
     </record>
 
     <record id="action_ai_agent_chat" model="ir.actions.act_window">
-        <field name="name">AI Agent</field>
+        <field name="name">AI Operations Agent</field>
         <field name="res_model">ai.agent.chat</field>
         <field name="view_mode">form</field>
         <field name="target">new</field>

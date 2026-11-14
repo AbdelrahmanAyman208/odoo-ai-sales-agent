@@ -1,0 +1,171 @@
+/* ==========================================================================
+   AI Operations Agent - Chatbot Minimize / Hide Bar & Floating Dock
+   ========================================================================== */
+
+/* Minimize button in the modal header */
+.o_ai_chat_minimize_btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    margin-right: 6px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: #495057;
+    font-size: 16px;
+    font-weight: bold;
+    line-height: 1;
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.o_ai_chat_minimize_btn:hover {
+    background-color: #e9ecef;
+    color: #0d6efd;
+}
+
+/* Horizontal dash icon matching the user design */
+.o_ai_dash_icon {
+    display: inline-block;
+    width: 14px;
+    height: 2.5px;
+    background-color: currentColor;
+    border-radius: 2px;
+}
+
+/* Minimized Modal State: hides backdrop and docks window to bottom-right */
+.o_dialog:has(.o_ai_minimized),
+.o_dialog.o_ai_dialog_minimized {
+    pointer-events: none !important;
+}
+
+.o_dialog.o_ai_dialog_minimized .modal,
+.o_ai_minimized {
+    position: fixed !important;
+    bottom: 20px !important;
+    right: 20px !important;
+    top: auto !important;
+    left: auto !important;
+    width: auto !important;
+    height: auto !important;
+    max-width: 400px !important;
+    background: transparent !important;
+    pointer-events: auto !important;
+    z-index: 1060 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: block !important;
+    box-shadow: none !important;
+}
+
+.o_dialog.o_ai_dialog_minimized .modal-dialog {
+    margin: 0 !important;
+    max-width: 100% !important;
+    width: auto !important;
+    transform: none !important;
+}
+
+.o_dialog.o_ai_dialog_minimized .modal-content {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* Hide modal body, footer and standard header when minimized */
+.o_dialog.o_ai_dialog_minimized .modal-body,
+.o_dialog.o_ai_dialog_minimized .modal-footer,
+.o_dialog.o_ai_dialog_minimized .modal-header {
+    display: none !important;
+}
+
+/* Floating Dock Pill Bar */
+.o_ai_minimized_dock {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: #1e293b;
+    color: #ffffff;
+    border-radius: 30px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
+    animation: o_ai_dock_appear 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.o_ai_minimized_dock:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 28px -4px rgba(0, 0, 0, 0.5);
+    background: #0f172a;
+}
+
+@keyframes o_ai_dock_appear {
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.o_ai_pulse_dot {
+    width: 9px;
+    height: 9px;
+    background-color: #22c55e;
+    border-radius: 50%;
+    display: inline-block;
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+    animation: o_ai_pulse 2s infinite;
+}
+
+@keyframes o_ai_pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 8px rgba(34, 197, 94, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+    }
+}
+
+.o_ai_dock_title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #f8fafc;
+    white-space: nowrap;
+}
+
+.o_ai_dock_btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.12);
+    color: #e2e8f0;
+    font-size: 11px;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.o_ai_dock_btn:hover {
+    background: rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+}
+
+.o_ai_dock_btn_close:hover {
+    background: #ef4444;
+    color: #ffffff;
+}
+

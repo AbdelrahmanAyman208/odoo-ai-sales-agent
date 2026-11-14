@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ai_agent_approval_view_list" model="ir.ui.view">
+        <field name="name">ai.agent.approval.list</field>
+        <field name="model">ai.agent.approval</field>
+        <field name="arch" type="xml">
+            <list string="Human Approvals" decoration-info="state == 'pending'" decoration-warning="state == 'step1_approved'" decoration-success="state == 'executed'" decoration-muted="state in ('rejected', 'expired', 'stale')" decoration-danger="state == 'failed'">
+                <field name="name"/>
+                <field name="tool_name"/>
+                <field name="request_text"/>
+                <field name="requested_by"/>
+                <field name="total_amount"/>
+                <field name="currency_id" column_invisible="True"/>
+                <field name="expires_at"/>
+                <field name="state" widget="badge"/>
+                <button name="action_open_target_record" type="object" string="View / Confirm Directly" class="btn btn-sm btn-primary" icon="fa-external-link" title="Open the target record (e.g. Purchase Order, Sales Order) to review and confirm directly"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="ai_agent_approval_view_form" model="ir.ui.view">
+        <field name="name">ai.agent.approval.form</field>
+        <field name="model">ai.agent.approval</field>
+        <field name="arch" type="xml">
+            <form string="Human Approval Request" create="0">
+                <header>
+                    <button name="action_open_target_record" type="object" string="🔍 Open Target Record Directly" class="btn-primary" icon="fa-external-link"/>
+                    <field name="state" widget="statusbar" statusbar_visible="pending,step1_approved,executed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group string="Operation Context">
+                            <field name="tool_name"/>
+                            <field name="request_text"/>
+                            <field name="requested_by"/>
+                            <field name="executed_by"/>
+                        </group>
+                        <group string="Snapshot &amp; Financials">
+                            <field name="res_model"/>
+                            <field name="total_amount"/>
+                            <field name="currency_id"/>
+                            <field name="expires_at"/>
+                            <field name="snapshot_hash"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Records to Execute">
+                            <field name="records_display_json" widget="text"/>
+                        </page>
+                        <page string="Execution Output">
+                            <field name="result_json" widget="text"/>
+                            <field name="error_message"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_ai_agent_approvals" model="ir.actions.act_window">
+        <field name="name">Approvals</field>
+        <field name="res_model">ai.agent.approval</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No approvals pending.
+            </p>
+        </field>
+    </record>
+</odoo>
+

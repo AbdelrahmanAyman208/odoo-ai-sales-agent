@@ -12,6 +12,12 @@
               action="action_ai_agent_chat"
               sequence="10"/>
 
+    <menuitem id="menu_sales_ai_approvals"
+              name="Human Approvals"
+              parent="menu_sales_ai_agent_root"
+              action="action_ai_agent_approvals"
+              sequence="15"/>
+
     <menuitem id="menu_sales_ai_logs"
               name="Sales Action History"
               parent="menu_sales_ai_agent_root"
@@ -36,6 +42,12 @@
               parent="menu_purchase_ai_agent_root"
               action="action_ai_agent_chat"
               sequence="10"/>
+
+    <menuitem id="menu_purchase_ai_approvals"
+              name="Human Approvals"
+              parent="menu_purchase_ai_agent_root"
+              action="action_ai_agent_approvals"
+              sequence="15"/>
 
     <menuitem id="menu_purchase_ai_logs"
               name="Action History"
