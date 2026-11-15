@@ -41,6 +41,8 @@ Odoo 20 AI Operations Agent (sale_ai_agent):
             'sale_ai_agent/static/src/js/ai_chat_minimize.js',
             'sale_ai_agent/static/src/components/ai_chat_panel/ai_chat_panel.xml',
             'sale_ai_agent/static/src/components/ai_chat_panel/ai_chat_panel.js',
+            'sale_ai_agent/static/src/components/ai_floating_widget/ai_floating_widget.xml',
+            'sale_ai_agent/static/src/components/ai_floating_widget/ai_floating_widget.js',
         ],
     },
     'application': True,

@@ -169,3 +169,53 @@
     color: #ffffff;
 }
 
+
+
+/* ==========================================================================
+   Persistent Floating Widget (Global Systray)
+   ========================================================================== */
+.o_ai_systray_container {
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.o_ai_floating_window {
+    position: fixed !important;
+    bottom: 24px !important;
+    right: 24px !important;
+    width: 440px !important;
+    max-width: 90vw !important;
+    background: #ffffff !important;
+    z-index: 9999 !important;
+    border: 1px solid rgba(0, 0, 0, 0.15) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25) !important;
+    display: flex;
+    flex-direction: column;
+    animation: o_ai_slide_up 0.2s ease-out;
+}
+
+.o_ai_floating_header {
+    cursor: pointer;
+    user-select: none;
+}
+
+.o_ai_floating_minimized {
+    width: 260px !important;
+    border-radius: 8px !important;
+}
+
+.o_ai_floating_minimized .o_ai_floating_header {
+    border-radius: 8px !important;
+}
+
+@keyframes o_ai_slide_up {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
