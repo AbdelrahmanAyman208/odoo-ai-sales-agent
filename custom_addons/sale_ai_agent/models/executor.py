@@ -89,7 +89,8 @@ class PlanExecutor:
                 err_text = res.get("error") or "Unknown execution error"
                 task.write({
                     'state': 'failed',
-                    'error': err_text,
+                    'error_message': err_text,
+                    'result_summary': f"Error: {err_text}",
                     'duration': duration,
                 })
                 use_case.write({

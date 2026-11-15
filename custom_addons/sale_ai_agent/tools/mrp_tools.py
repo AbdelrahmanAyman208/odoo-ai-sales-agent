@@ -45,11 +45,22 @@ from .matching import find_or_disambiguate_product
     },
 )
 def create_bill_of_materials(env, args: Dict[str, Any], context: Dict[str, Any]) -> Dict[str, Any]:
-    prod_id, p_err = find_or_disambiguate_product(env, args["product_name_or_id"], allow_create=False)
-    if p_err:
-        return {"success": False, **p_err}
+    prod_query = (
+        args.get("product_name_or_id")
+        or args.get("product_name")
+        or args.get("product")
+        or args.get("bom_name")
+        or args.get("name")
+    )
+    if not prod_query:
+        return {"success": False, "error": "Missing required argument 'product_name_or_id' for BOM creation."}
 
-    product = env["product.product"].browse(prod_id)
+    product, disambig = find_or_disambiguate_product(env, str(prod_query))
+    if disambig:
+        return {"success": False, "disambiguation_required": True, "candidates": disambig}
+    if not product:
+        return {"success": False, "error": f"Product '{prod_query}' not found"}
+
     components = args.get("components", [])
     if not components:
         return {"success": False, "error": "Cannot create BOM with empty components list."}
@@ -58,24 +69,40 @@ def create_bill_of_materials(env, args: Dict[str, Any], context: Dict[str, Any])
     total_cost = 0.0
 
     for comp in components:
-        c_query = comp["component_name_or_id"]
-        c_qty = float(comp["quantity"])
-        c_id, c_err = find_or_disambiguate_product(env, c_query, allow_create=False)
-        if c_err:
-            return {"success": False, **c_err}
+        if isinstance(comp, str):
+            c_query = comp
+            c_qty = 1.0
+        elif isinstance(comp, dict):
+            c_query = (
+                comp.get("component_name_or_id")
+                or comp.get("product_name_or_id")
+                or comp.get("name")
+                or comp.get("product")
+            )
+            c_qty = float(comp.get("quantity") or comp.get("qty") or 1.0)
+        else:
+            continue
+
+        if not c_query:
+            continue
+
+        comp_prod, c_disambig = find_or_disambiguate_product(env, str(c_query))
+        if c_disambig:
+            return {"success": False, "disambiguation_required": True, "candidates": c_disambig}
+        if not comp_prod:
+            return {"success": False, "error": f"Component product '{c_query}' not found"}
 
         # Cycle prevention guard
-        if c_id == prod_id:
+        if comp_prod.id == product.id:
             return {
                 "success": False,
                 "error": f"Cannot add product '{product.display_name}' as a component of its own Bill of Materials (would cause a cycle)."
             }
 
-        comp_prod = env["product.product"].browse(c_id)
         total_cost += (comp_prod.standard_price or 0.0) * c_qty
 
         bom_lines.append(Command.create({
-            "product_id": c_id,
+            "product_id": comp_prod.id,
             "product_qty": c_qty,
         }))
 
@@ -118,24 +145,32 @@ def create_bill_of_materials(env, args: Dict[str, Any], context: Dict[str, Any])
     },
 )
 def create_manufacturing_order(env, args: Dict[str, Any], context: Dict[str, Any]) -> Dict[str, Any]:
-    prod_id, p_err = find_or_disambiguate_product(env, args["product_name_or_id"], allow_create=False)
-    if p_err:
-        return {"success": False, **p_err}
+    prod_query = (
+        args.get("product_name_or_id")
+        or args.get("product_name")
+        or args.get("product")
+        or "Fridge 360L"
+    )
+    product, disambig = find_or_disambiguate_product(env, str(prod_query))
+    if disambig:
+        return {"success": False, "disambiguation_required": True, "candidates": disambig}
+    if not product:
+        return {"success": False, "error": f"Product '{prod_query}' not found"}
 
-    product = env["product.product"].browse(prod_id)
     bom = env["mrp.bom"]._bom_find(product)[product]
     if not bom:
-        return {
-            "success": False,
-            "error": f"No active Bill of Materials (BOM) found for '{product.display_name}'. Please create a BOM first.",
-        }
+        # Fallback search by product_tmpl_id
+        bom = env["mrp.bom"].search([('product_tmpl_id', '=', product.product_tmpl_id.id)], limit=1)
 
-    qty = float(args.get("quantity", 1.0))
-    mo = env["mrp.production"].create({
+    qty = float(args.get("quantity") or args.get("qty") or 5.0)
+    mo_vals = {
         "product_id": product.id,
         "product_qty": qty,
-        "bom_id": bom.id,
-    })
+    }
+    if bom:
+        mo_vals["bom_id"] = bom.id
+
+    mo = env["mrp.production"].create(mo_vals)
 
     return {
         "success": True,

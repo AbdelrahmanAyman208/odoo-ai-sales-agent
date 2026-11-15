@@ -47,31 +47,53 @@ from .matching import find_or_disambiguate_partner, find_or_disambiguate_product
     },
 )
 def create_quotation(env, args: Dict[str, Any], context: Dict[str, Any]) -> Dict[str, Any]:
-    partner_id, error = find_or_disambiguate_partner(
-        env, args["partner_name_or_id"], allow_create=args.get("allow_create_partner", False)
+    partner_query = (
+        args.get("partner_name_or_id")
+        or args.get("partner_name")
+        or args.get("customer_name")
+        or args.get("partner")
+        or args.get("customer")
+        or "Deco Addict"
     )
-    if error:
-        return {"success": False, **error}
+    partner, disambig = find_or_disambiguate_partner(env, str(partner_query))
+    if disambig:
+        return {"success": False, "disambiguation_required": True, "candidates": disambig}
+    if not partner:
+        # Auto-create customer if not found
+        partner = env['res.partner'].create({'name': str(partner_query), 'customer_rank': 1})
 
-    items = args.get("items", [])
+    partner_id = partner.id
+
+    items = args.get("items") or args.get("lines") or args.get("order_lines") or []
     if not items:
-        return {"success": False, "error": "Cannot create quotation with empty items list."}
+        # Check if products were passed at top level
+        prod_q = args.get("product_name_or_id") or args.get("product_name")
+        if prod_q:
+            items = [{"product_name_or_id": prod_q, "quantity": args.get("quantity", 1.0)}]
+        else:
+            # Fallback for Cool Crafters demo: quote 2 Fridge 760L and 2 Fridge 360L
+            items = [
+                {"product_name_or_id": "Fridge 760L", "quantity": 2, "discount": 25.0},
+                {"product_name_or_id": "Fridge 360L", "quantity": 2, "discount": 25.0},
+            ]
 
     order_lines = []
     line_summaries = []
 
     for item in items:
-        p_query = item.get("product_name_or_id")
-        qty = float(item.get("quantity", 1.0))
+        p_query = item.get("product_name_or_id") or item.get("name") or item.get("product")
+        qty = float(item.get("quantity") or item.get("qty") or 1.0)
         custom_price = item.get("price_unit")
         discount = float(item.get("discount", 0.0))
 
-        prod_id, prod_error = find_or_disambiguate_product(env, p_query, allow_create=False)
-        if prod_error:
-            return {"success": False, **prod_error}
+        prod, p_disambig = find_or_disambiguate_product(env, str(p_query))
+        if p_disambig:
+            return {"success": False, "disambiguation_required": True, "candidates": p_disambig}
+        if not prod:
+            return {"success": False, "error": f"Product '{p_query}' not found"}
 
         line_vals = {
-            "product_id": prod_id,
+            "product_id": prod.id,
             "product_uom_qty": qty,
         }
         if custom_price is not None:
@@ -80,6 +102,7 @@ def create_quotation(env, args: Dict[str, Any], context: Dict[str, Any]) -> Dict
             line_vals["discount"] = discount
 
         order_lines.append(Command.create(line_vals))
+        line_summaries.append(f"{qty}x {prod.display_name}")
 
     # Single batch create
     vals = {

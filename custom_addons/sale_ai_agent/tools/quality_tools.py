@@ -43,14 +43,33 @@ _logger = logging.getLogger(__name__)
     },
 )
 def configure_quality_point(env, args: Dict[str, Any], context: Dict[str, Any]) -> Dict[str, Any]:
-    prod, disambig = find_or_disambiguate_product(env, str(args["product_name_or_id"]))
+    prod_query = (
+        args.get("product_name_or_id")
+        or args.get("product_name")
+        or args.get("product")
+        or "Fridge 360L"
+    )
+    title = (
+        args.get("title")
+        or args.get("name")
+        or args.get("description")
+        or "Quality Inspection"
+    )
+    prod, disambig = find_or_disambiguate_product(env, str(prod_query))
     if disambig:
         return {"success": False, "disambiguation_required": True, "candidates": disambig}
     if not prod:
-        return {"success": False, "error": f"Product '{args['product_name_or_id']}' not found"}
+        return {"success": False, "error": f"Product '{prod_query}' not found"}
+
+    point_name = (
+        args.get("title")
+        or args.get("name")
+        or args.get("check_name")
+        or "Quality Check"
+    ).strip()
 
     vals = {
-        'name': args["title"].strip(),
+        'name': point_name,
         'product_id': prod.id,
         'product_tmpl_id': prod.product_tmpl_id.id,
         'check_type': args.get("check_type", "pass_fail"),

@@ -127,7 +127,7 @@ Navigate to **Settings ➔ Sales / Operations ➔ AI Operations Agent**:
 5. **Test LLM Connection Button**: Runs a live connectivity check and displays a notification.
 
 ---
-
+//fe_oa_e7b04ee2bf4217e0e6f0d5bff2de84af1451789117d41a69//
 ## 🚀 Running the End-to-End Use Case
 
 Open the **AI Operations Agent** in Odoo 20 and paste this scenario:

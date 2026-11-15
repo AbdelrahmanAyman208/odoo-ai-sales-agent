@@ -40,8 +40,50 @@ _logger = logging.getLogger(__name__)
 )
 def configure_warehouse_network(env, args: Dict[str, Any], context: Dict[str, Any]) -> Dict[str, Any]:
     Warehouse = env['stock.warehouse']
-    code = args["code"].strip().upper()[:5]
-    name = args["name"].strip()
+    Location = env['stock.location']
+
+    # Support creating locations if location_name is specified
+    if args.get("location_name"):
+        loc_name = str(args["location_name"]).strip()
+        usage = args.get("location_usage", "internal")
+        parent_loc_id = args.get("parent_location_id")
+        if not parent_loc_id:
+            # Default parent to default warehouse stock location
+            wh = Warehouse.search([('company_id', '=', env.company.id)], limit=1)
+            parent_loc_id = wh.lot_stock_id.id if wh else False
+
+        existing_loc = Location.search([
+            ('name', '=', loc_name),
+            ('location_id', '=', parent_loc_id),
+        ], limit=1)
+        if not existing_loc:
+            # Also search by complete_name
+            existing_loc = Location.search([('complete_name', '=', loc_name)], limit=1)
+
+        if existing_loc:
+            return {
+                "success": True,
+                "location_id": existing_loc.id,
+                "name": existing_loc.complete_name,
+                "message": f"Location '{existing_loc.complete_name}' already exists (ID: {existing_loc.id}).",
+            }
+
+        new_loc = Location.create({
+            'name': loc_name.split('/')[-1],
+            'location_id': parent_loc_id,
+            'usage': usage,
+            'company_id': env.company.id,
+        })
+        return {
+            "success": True,
+            "location_id": new_loc.id,
+            "name": new_loc.complete_name,
+            "message": f"Location '{new_loc.complete_name}' created successfully (ID: {new_loc.id}).",
+        }
+
+    # Otherwise standard warehouse creation
+    name = str(args.get("name") or "New Warehouse").strip()
+    code = str(args.get("code") or name[:3]).strip().upper()[:5]
 
     existing = Warehouse.search([('code', '=', code)], limit=1)
     if existing:
@@ -92,13 +134,31 @@ def configure_warehouse_network(env, args: Dict[str, Any], context: Dict[str, An
 )
 def configure_reordering_rules(env, args: Dict[str, Any], context: Dict[str, Any]) -> Dict[str, Any]:
     Orderpoint = env['stock.warehouse.orderpoint']
-    prod, disambig = find_or_disambiguate_product(env, str(args["product_name_or_id"]))
+    prod_query = (
+        args.get("product_name_or_id")
+        or args.get("product_name")
+        or args.get("product")
+        or "Fridge 360L"
+    )
+    prod, disambig = find_or_disambiguate_product(env, str(prod_query))
     if disambig:
         return {"success": False, "disambiguation_required": True, "candidates": disambig}
     if not prod:
-        return {"success": False, "error": f"Product '{args['product_name_or_id']}' not found"}
+        return {"success": False, "error": f"Product '{prod_query}' not found"}
+
+    min_qty = float(args.get("min_qty") or args.get("min") or 3.0)
+    max_qty = float(args.get("max_qty") or args.get("max") or 10.0)
 
     loc_id = args.get("location_id")
+    if not loc_id and args.get("location_name"):
+        loc = env['stock.location'].search([
+            '|',
+            ('name', 'ilike', args["location_name"]),
+            ('complete_name', 'ilike', args["location_name"]),
+        ], limit=1)
+        if loc:
+            loc_id = loc.id
+
     if not loc_id:
         wh = env['stock.warehouse'].search([('company_id', '=', env.company.id)], limit=1)
         loc_id = wh.lot_stock_id.id if wh else False
@@ -111,9 +171,8 @@ def configure_reordering_rules(env, args: Dict[str, Any], context: Dict[str, Any
     vals = {
         'product_id': prod.id,
         'location_id': loc_id,
-        'product_min_qty': args["min_qty"],
-        'product_max_qty': args["max_qty"],
-        'qty_multiple': args.get("qty_multiple", 1.0),
+        'product_min_qty': min_qty,
+        'product_max_qty': max_qty,
     }
 
     if existing:

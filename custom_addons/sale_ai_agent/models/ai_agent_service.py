@@ -156,28 +156,52 @@ class AiAgentService(models.AbstractModel):
             return {"role": "assistant", "content": f"Execution error: {str(e)}", "executed_tools": []}
 
     def _plan_and_execute_use_case(self, client, cfg, prompt: str) -> Dict[str, Any]:
-        """Plans and runs an end-to-end use case via ai.agent.use.case and ai.agent.task."""
+        """Plans and runs an end-to-end use case via ai.agent.use.case and ai.agent.task.
+
+        Uses a compact tool list to save context budget and max_tokens=4096 to
+        accommodate reasoning-model overhead (G2: free-model robustness).
+
+        Complexity: O(T) where T is the number of tools/tasks.
+        """
         UseCase = self.env['ai.agent.use.case']
         Task = self.env['ai.agent.task']
 
-        tools_summary = "\n".join([
-            f"- {t['name']}: {t['description']}"
-            for t in get_all_tool_definitions(env=self.env)
-        ])
+        # Compact tool list: name only (descriptions bloat context for free models)
+        all_tools = get_all_tool_definitions(env=self.env)
+        tools_compact = ", ".join([t['name'] for t in all_tools])
 
         messages = [
-            {"role": "system", "content": f"{PLANNER_SYSTEM_PROMPT}\n\nAVAILABLE TOOLS:\n{tools_summary}"},
+            {"role": "system", "content": f"{PLANNER_SYSTEM_PROMPT}\n\nAVAILABLE TOOL NAMES:\n{tools_compact}"},
             {"role": "user", "content": f"Create an execution plan for this business scenario:\n{prompt}"},
         ]
 
-        try:
-            resp = client.create_chat_completion(messages=messages, max_tokens=1500, temperature=0.2)
-            plan = parse_and_validate_plan(self.env, resp.get("content", ""))
-        except Exception as e:
-            _logger.warning("Planning fallback, creating single direct execution task: %s", e)
+        plan = None
+        last_error = None
+        # Try twice: generous max_tokens for reasoning models, then even larger (G2)
+        for attempt_tokens in (8192, 12000):
+            try:
+                resp = client.create_chat_completion(
+                    messages=messages,
+                    max_tokens=attempt_tokens,
+                    temperature=0.2,
+                )
+                raw_content = resp.get("content", "")
+                if not raw_content.strip():
+                    _logger.warning("Planner returned empty content (attempt max_tokens=%d)", attempt_tokens)
+                    last_error = "LLM returned empty response (likely reasoning model token exhaustion)"
+                    continue
+                plan = parse_and_validate_plan(self.env, raw_content)
+                break
+            except Exception as e:
+                last_error = str(e)
+                _logger.warning("Planning attempt failed (max_tokens=%d): %s", attempt_tokens, e)
+                continue
+
+        if plan is None:
+            _logger.warning("All planning attempts failed: %s", last_error)
             return {
                 "role": "assistant",
-                "content": f"⚠️ Could not generate automated plan ({str(e)}). Please try specifying the individual steps.",
+                "content": f"⚠️ Could not generate automated plan ({last_error}). Please try specifying the individual steps.",
                 "executed_tools": [],
             }
 

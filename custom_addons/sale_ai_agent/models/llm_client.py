@@ -174,6 +174,10 @@ class OpenAILLMClient:
     def _parse_completion_response(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """
         Parses OpenAI completion object, with fallback leniency for free models.
+        Handles reasoning models (e.g. Nemotron) that may put all output into
+        reasoning_details and return empty content.
+
+        Complexity: O(N) where N is response payload size.
         """
         choices = data.get("choices", [])
         if not choices:
@@ -182,6 +186,34 @@ class OpenAILLMClient:
         msg = choices[0].get("message", {})
         content = msg.get("content") or ""
         raw_tool_calls = msg.get("tool_calls") or []
+
+        # --- Reasoning model fallback (G2: free-model robustness) ---
+        # Some reasoning models (Nemotron, DeepSeek-R1) spend the entire token
+        # budget on internal chain-of-thought and return empty content.  The
+        # actual useful output is sometimes embedded inside the reasoning text.
+        if not content and not raw_tool_calls:
+            reasoning_text = self._extract_reasoning_text(msg)
+            if reasoning_text:
+                # Try to find the last JSON object or usable text in reasoning
+                json_match = None
+                # Search for JSON blocks in reverse (last one is usually the answer)
+                for m in reversed(list(re.finditer(r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}', reasoning_text, re.DOTALL))):
+                    candidate = m.group(0)
+                    try:
+                        json.loads(candidate)
+                        json_match = candidate
+                        break
+                    except Exception:
+                        continue
+                if json_match:
+                    content = json_match
+                    _logger.info("Recovered JSON content from reasoning model output (%d chars)", len(content))
+                else:
+                    # Fall back to last substantive line of reasoning as content
+                    lines = [l.strip() for l in reasoning_text.strip().split('\n') if l.strip() and not l.strip().startswith(('1.', '2.', '3.', 'Here', 'Let', 'I '))]
+                    if lines:
+                        content = lines[-1]
+                        _logger.info("Recovered text content from reasoning model output")
 
         parsed_tool_calls = []
         for tc in raw_tool_calls:
@@ -208,6 +240,33 @@ class OpenAILLMClient:
             "usage": data.get("usage", {}),
             "model": data.get("model", self.model),
         }
+
+    @staticmethod
+    def _extract_reasoning_text(msg: Dict[str, Any]) -> str:
+        """Extracts reasoning/thinking text from various model response formats.
+
+        Handles OpenRouter's reasoning_details, reasoning, and refusal fields.
+        Complexity: O(N) where N is the reasoning text length.
+        """
+        # OpenRouter Nemotron / DeepSeek format
+        reasoning = msg.get("reasoning") or ""
+        if reasoning:
+            return reasoning
+
+        # reasoning_details array format
+        details = msg.get("reasoning_details") or []
+        if details and isinstance(details, list):
+            parts = []
+            for d in details:
+                if isinstance(d, dict):
+                    parts.append(d.get("text", ""))
+                elif isinstance(d, str):
+                    parts.append(d)
+            combined = "\n".join(parts)
+            if combined.strip():
+                return combined
+
+        return ""
 
     def _safe_parse_json(self, raw_str: Any) -> Dict[str, Any]:
         """Auto-repairs dirty JSON strings commonly emitted by small models."""
