@@ -10,3 +10,4 @@ access_ai_agent_use_case_user,ai.agent.use.case user,ai.agent.use.case,base.grou
 access_ai_agent_task_user,ai.agent.task user,ai.agent.task,base.group_user,crud,
 access_ai_quality_point_user,ai.quality.point user,ai.quality.point,base.group_user,crud,
 access_ai_quality_check_user,ai.quality.check user,ai.quality.check,base.group_user,crud,
+access_ai_cost_profile_user,ai.cost.profile user,ai.cost.profile,base.group_user,crud,

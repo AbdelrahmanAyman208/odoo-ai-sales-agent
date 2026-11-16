@@ -21,6 +21,9 @@ from . import warehouse_tools
 from . import variant_tools
 from . import docs_tools
 from . import inspector_tools
+from . import macro_project_tools
+from . import macro_inventory_tools
+from . import macro_mrp_tools
 
 from .base import (
     agent_tool,

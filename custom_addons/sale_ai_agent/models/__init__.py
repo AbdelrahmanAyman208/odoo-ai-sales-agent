@@ -13,4 +13,5 @@ from . import product_template
 from . import sale_order
 from . import inherited_models
 from . import ai_quality
+from . import ai_cost_profile
 from . import res_config_settings
