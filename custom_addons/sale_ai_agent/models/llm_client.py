@@ -245,9 +245,14 @@ class OpenAILLMClient:
     def _extract_reasoning_text(msg: Dict[str, Any]) -> str:
         """Extracts reasoning/thinking text from various model response formats.
 
-        Handles OpenRouter's reasoning_details, reasoning, and refusal fields.
+        Handles SovereignEG/vLLM reasoning_content, OpenRouter reasoning_details, reasoning, and refusal fields.
         Complexity: O(N) where N is the reasoning text length.
         """
+        # SovereignEG / vLLM Qwen format
+        reasoning_content = msg.get("reasoning_content") or ""
+        if reasoning_content:
+            return reasoning_content
+
         # OpenRouter Nemotron / DeepSeek format
         reasoning = msg.get("reasoning") or ""
         if reasoning:

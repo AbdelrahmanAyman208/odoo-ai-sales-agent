@@ -1,6 +1,6 @@
 /** @odoo-module **/
 
-import { Component, useState, useRef, onMounted } from "@odoo/owl";
+import { Component, useState, useRef } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 
@@ -9,8 +9,11 @@ export class AiFloatingWidget extends Component {
 
     setup() {
         this.orm = useService("orm");
-        this.actionService = useService("action");
-        this.router = useService("router");
+        try {
+            this.actionService = useService("action");
+        } catch (e) {
+            this.actionService = null;
+        }
         this.messageListRef = useRef("messageList");
 
         this.state = useState({
@@ -19,7 +22,7 @@ export class AiFloatingWidget extends Component {
             messages: [
                 {
                     role: "assistant",
-                    content: "👋 Hello! I am your AI Operations Assistant. Ask me to plan and execute tasks across Sales, Purchase, Inventory, MRP, Quality, or CRM — and I will remain right here while you navigate through any Odoo module!",
+                    content: "Hello! I am your AI Operations Assistant. Ask me to plan and execute tasks across Sales, Purchase, Inventory, MRP, Quality, or CRM -- and I will remain right here while you navigate through any Odoo module!",
                 }
             ],
             inputValue: "",
@@ -71,7 +74,7 @@ export class AiFloatingWidget extends Component {
                 content: m.content
             }));
 
-            // Detect current viewed model and ID from router / action service
+            // Detect current viewed model and ID safely
             let currentModel = null;
             let currentId = null;
             try {
@@ -79,10 +82,6 @@ export class AiFloatingWidget extends Component {
                 if (currentController && currentController.props) {
                     currentModel = currentController.props.resModel;
                     currentId = currentController.props.resId;
-                }
-                if (!currentModel && this.router && this.router.current) {
-                    currentModel = this.router.current.res_model || this.router.current.model;
-                    currentId = this.router.current.id || this.router.current.res_id;
                 }
             } catch (err) {
                 // Non-blocking fallback
@@ -103,7 +102,7 @@ export class AiFloatingWidget extends Component {
         } catch (error) {
             this.state.messages.push({
                 role: "assistant",
-                content: `⚠️ Error: ${error.message || "Failed to communicate with agent."}`,
+                content: `Error: ${error.message || "Failed to communicate with agent."}`,
             });
         } finally {
             this.state.isSending = false;

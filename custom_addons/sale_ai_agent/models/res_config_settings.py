@@ -16,21 +16,22 @@ class ResConfigSettings(models.TransientModel):
     _inherit = 'res.config.settings'
 
     ai_api_base = fields.Char(
-        string='OpenAI / OpenRouter Base URL',
-        default='https://openrouter.ai/api/v1',
+        string='OpenAI / SovereignEG Base URL',
+        default='https://sovereigneg.com/v1',
         config_parameter='sale_ai_agent.api_base',
-        help='Endpoint for standard OpenAI-compatible completions API (e.g. OpenRouter, vLLM, Ollama, OpenAI).',
+        help='Endpoint for standard OpenAI-compatible completions API (e.g. SovereignEG, OpenRouter, vLLM, Ollama, OpenAI).',
     )
     ai_api_key = fields.Char(
         string='API Key',
+        default='sk-8fb519ab5dfe3feabcbd6647f8f1407b',
         config_parameter='sale_ai_agent.api_key',
-        help='Your OpenAI or OpenRouter API key.',
+        help='Your SovereignEG or OpenAI API key.',
     )
     ai_model = fields.Char(
         string='Model Name',
-        default='google/gemini-2.0-flash-exp:free',
+        default='SovereignEG/Qwen3.8-27B-FP8',
         config_parameter='sale_ai_agent.model',
-        help='Model ID (e.g. google/gemini-2.0-flash-exp:free, meta-llama/llama-3.3-70b-instruct:free, openai/gpt-4o-mini).',
+        help='Model ID (e.g. SovereignEG/Qwen3.8-27B-FP8, google/gemini-2.0-flash-exp:free, openai/gpt-4o-mini).',
     )
     ai_max_tokens = fields.Integer(
         string='Max Output Tokens',

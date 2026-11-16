@@ -9,7 +9,6 @@ export class AiChatPanel extends Component {
 
     setup() {
         this.orm = useService("orm");
-        this.rpc = useService("rpc");
         this.messageListRef = useRef("messageList");
 
         this.state = useState({
@@ -115,4 +114,3 @@ export class AiChatPanel extends Component {
 }
 
 registry.category("actions").add("sale_ai_agent.chat_action", AiChatPanel);
-
