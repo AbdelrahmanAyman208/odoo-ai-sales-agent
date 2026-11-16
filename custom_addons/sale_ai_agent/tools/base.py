@@ -80,7 +80,7 @@ def is_tool_available(env, meta: Dict[str, Any]) -> bool:
 
 def get_all_tool_definitions(env=None, domain: Optional[str] = None) -> List[Dict[str, Any]]:
     """
-    Returns OpenAI/Anthropic compatible tool schemas.
+    Returns OpenAI-compatible tool schemas.
     Filters out tools whose required modules are not installed in the database.
     If domain is provided and not 'multi', returns tools for that domain plus core search/diagnostic tools.
     """

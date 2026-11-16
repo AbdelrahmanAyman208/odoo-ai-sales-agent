@@ -5,7 +5,7 @@ Features:
 - Single OpenAI-compatible client configuration (OpenRouter default).
 - RPM rate limit and Daily Request Budget parameters.
 - 'Test Connection' button with full round-trip verification.
-- Zero Anthropic vendor-specific keys or leftover provider fields.
+- Clean OpenAI-compatible configuration with zero vendor-specific keys.
 """
 from odoo import fields, models
 from odoo.exceptions import UserError
@@ -30,7 +30,7 @@ class ResConfigSettings(models.TransientModel):
         string='Model Name',
         default='google/gemini-2.0-flash-exp:free',
         config_parameter='sale_ai_agent.model',
-        help='Model ID (e.g. google/gemini-2.0-flash-exp:free, meta-llama/llama-3.3-70b-instruct:free, anthropic/claude-3.5-sonnet).',
+        help='Model ID (e.g. google/gemini-2.0-flash-exp:free, meta-llama/llama-3.3-70b-instruct:free, openai/gpt-4o-mini).',
     )
     ai_max_tokens = fields.Integer(
         string='Max Output Tokens',

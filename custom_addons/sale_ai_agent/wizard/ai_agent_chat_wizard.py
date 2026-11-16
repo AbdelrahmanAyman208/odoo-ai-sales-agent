@@ -214,7 +214,7 @@ class AiAgentChat(models.TransientModel):
             })
             return self._reload_view()
 
-        # Build messages for Claude — system prompt is handled inside run_agent_turn
+        # Build messages for LLM — system prompt is handled inside run_agent_turn
         messages_for_llm = []
         for h in history:
             if h.get('role') in ('user', 'assistant'):

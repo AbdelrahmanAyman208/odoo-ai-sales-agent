@@ -92,7 +92,8 @@ class AiAgentService(models.AbstractModel):
 
         # 2. Check if this is a complex multi-step use case
         if domain == "multi" or any(kw in last_user_prompt.lower() for kw in ("use case", "usecase", "scenario", "flow", "workflow")):
-            return self._plan_and_execute_use_case(client, cfg, last_user_prompt)
+            # Route through LangGraph Use-Case engine
+            return self._plan_and_execute_use_case_graph(client, cfg, last_user_prompt)
 
         # 3. Normal question / single-domain turn
         system_prompt, domain = build_system_prompt_with_grounding(cfg['system_prompt'], last_user_prompt)
@@ -160,6 +161,42 @@ class AiAgentService(models.AbstractModel):
         except Exception as e:
             _logger.exception("Unexpected error in run_agent_turn: %s", e)
             return {"role": "assistant", "content": f"Execution error: {str(e)}", "executed_tools": []}
+
+    def _plan_and_execute_use_case_graph(self, client, cfg, prompt: str) -> Dict[str, Any]:
+        """Orchestrates complex use case through compiled LangGraph engine."""
+        UseCase = self.env['ai.agent.use.case']
+        use_case = UseCase.create({
+            'name': "Business Use Case",
+            'prompt': prompt,
+            'state': 'planning',
+        })
+        try:
+            from ..graph.runtime import run_use_case_through_graph
+            graph_res = run_use_case_through_graph(self.env, use_case.id)
+
+            task_list_str = "\n".join([
+                f"- {'✓' if t.state=='done' else '⏳'} **{t.title}**: {t.result_summary or t.state}"
+                for t in use_case.task_ids
+            ])
+
+            reply_content = (
+                f"### 📋 {use_case.name}\n"
+                f"{use_case.summary or ''}\n\n"
+                f"**Execution Status**: {use_case.state.upper()} ({use_case.progress}%)\n\n"
+                f"{task_list_str}\n\n"
+            )
+            if graph_res.get("status") == "approval_required":
+                reply_content += f"\n🛡️ **{graph_res.get('summary')}**"
+
+            return {
+                "role": "assistant",
+                "content": reply_content,
+                "executed_tools": [],
+                "use_case_id": use_case.id,
+            }
+        except Exception as e:
+            _logger.warning("LangGraph execution fallback to legacy executor: %s", e)
+            return self._plan_and_execute_use_case(client, cfg, prompt)
 
     def _plan_and_execute_use_case(self, client, cfg, prompt: str) -> Dict[str, Any]:
         """Plans and runs an end-to-end use case via ai.agent.use.case and ai.agent.task.

@@ -115,7 +115,7 @@ class TestSalesAiAgent(TransactionCase):
     def test_06_ai_agent_chat_turn(self):
         """Test full chat agent turn with tool execution.
 
-        Mocks run_agent_turn to return a Claude-style response with
+        Mocks run_agent_turn to return an LLM-style response with
         tool execution results, simulating the real agent loop.
         """
         mock_result = {
@@ -176,7 +176,7 @@ class TestSalesAiAgent(TransactionCase):
     def test_08_replenishment_chat_turn(self):
         """Test invoking replenishment via chat assistant.
 
-        Mocks run_agent_turn to simulate Claude calling inventory tools.
+        Mocks run_agent_turn to simulate the LLM calling inventory tools.
         """
         mock_result = {
             "content": (
