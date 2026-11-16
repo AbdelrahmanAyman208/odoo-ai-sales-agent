@@ -22,6 +22,7 @@ from .intent_router import build_system_prompt_with_grounding, route_intent
 from .planner import parse_and_validate_plan, PLANNER_SYSTEM_PROMPT, PlanValidationError
 from .executor import PlanExecutor
 from ..services.rate_limiter import check_and_consume_budget, get_budget_status
+from ..services.database_context_service import build_live_database_context
 from ..tools import ToolExecutor, get_all_tool_definitions
 
 _logger = logging.getLogger(__name__)
@@ -95,6 +96,11 @@ class AiAgentService(models.AbstractModel):
 
         # 3. Normal question / single-domain turn
         system_prompt, domain = build_system_prompt_with_grounding(cfg['system_prompt'], last_user_prompt)
+        
+        # Inject live database & activity context
+        db_context = build_live_database_context(self.env, active_model=model_name, active_id=res_id)
+        system_prompt = f"{system_prompt}\n\n{db_context}"
+
         tool_defs = get_all_tool_definitions(env=self.env, domain=domain)
 
         api_messages = [{"role": "system", "content": system_prompt}]

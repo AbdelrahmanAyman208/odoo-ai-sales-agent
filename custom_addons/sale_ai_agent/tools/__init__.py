@@ -20,6 +20,7 @@ from . import quality_tools
 from . import warehouse_tools
 from . import variant_tools
 from . import docs_tools
+from . import inspector_tools
 
 from .base import (
     agent_tool,

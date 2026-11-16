@@ -9,6 +9,8 @@ export class AiFloatingWidget extends Component {
 
     setup() {
         this.orm = useService("orm");
+        this.actionService = useService("action");
+        this.router = useService("router");
         this.messageListRef = useRef("messageList");
 
         this.state = useState({
@@ -69,9 +71,28 @@ export class AiFloatingWidget extends Component {
                 content: m.content
             }));
 
+            // Detect current viewed model and ID from router / action service
+            let currentModel = null;
+            let currentId = null;
+            try {
+                const currentController = this.actionService && this.actionService.currentController;
+                if (currentController && currentController.props) {
+                    currentModel = currentController.props.resModel;
+                    currentId = currentController.props.resId;
+                }
+                if (!currentModel && this.router && this.router.current) {
+                    currentModel = this.router.current.res_model || this.router.current.model;
+                    currentId = this.router.current.id || this.router.current.res_id;
+                }
+            } catch (err) {
+                // Non-blocking fallback
+            }
+
             const response = await this.orm.call("ai.agent.service", "run_agent_turn", [], {
                 messages: windowMessages,
                 source: "floating_chat",
+                model_name: currentModel || null,
+                res_id: currentId ? parseInt(currentId, 10) : null,
             });
 
             const content = response.content || "Done.";
