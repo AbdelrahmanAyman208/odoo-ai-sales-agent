@@ -1,17 +1,18 @@
 /** @odoo-module **/
 
-import { Component, useState, useRef, onMounted } from "@odoo/owl";
+import { Component, proxy, signal, onMounted } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 
 export class AiChatPanel extends Component {
     static template = "sale_ai_agent.AiChatPanel";
 
+    messageList = signal.ref();
+
     setup() {
         this.orm = useService("orm");
-        this.messageListRef = useRef("messageList");
 
-        this.state = useState({
+        this.state = proxy({
             isCapabilitiesOpen: false,
             messages: [],
             inputValue: "",
@@ -59,7 +60,7 @@ export class AiChatPanel extends Component {
     }
 
     async sendMessage() {
-        const text = this.state.inputValue.trim();
+        const text = (this.state.inputValue || "").trim();
         if (!text || this.state.isSending) return;
 
         this.state.inputValue = "";
@@ -72,7 +73,10 @@ export class AiChatPanel extends Component {
 
         try {
             // Keep sliding window of last 6 turns
-            const windowMessages = this.state.messages.slice(-6);
+            const windowMessages = this.state.messages.slice(-6).map(m => ({
+                role: m.role,
+                content: m.content
+            }));
 
             const response = await this.orm.call("ai.agent.service", "run_agent_turn", [], {
                 messages: windowMessages,
@@ -106,8 +110,9 @@ export class AiChatPanel extends Component {
 
     scrollToBottom() {
         window.requestAnimationFrame(() => {
-            if (this.messageListRef.el) {
-                this.messageListRef.el.scrollTop = this.messageListRef.el.scrollHeight;
+            const el = this.messageList();
+            if (el) {
+                el.scrollTop = el.scrollHeight;
             }
         });
     }

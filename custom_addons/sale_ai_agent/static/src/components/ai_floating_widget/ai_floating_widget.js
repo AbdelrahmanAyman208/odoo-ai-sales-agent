@@ -1,11 +1,13 @@
 /** @odoo-module **/
 
-import { Component, useState, useRef } from "@odoo/owl";
+import { Component, proxy, signal } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 
 export class AiFloatingWidget extends Component {
     static template = "sale_ai_agent.AiFloatingWidget";
+
+    messageList = signal.ref();
 
     setup() {
         this.orm = useService("orm");
@@ -14,9 +16,8 @@ export class AiFloatingWidget extends Component {
         } catch (e) {
             this.actionService = null;
         }
-        this.messageListRef = useRef("messageList");
 
-        this.state = useState({
+        this.state = proxy({
             isOpen: false,
             isMinimized: false,
             messages: [
@@ -58,7 +59,7 @@ export class AiFloatingWidget extends Component {
     }
 
     async sendMessage() {
-        const text = this.state.inputValue.trim();
+        const text = (this.state.inputValue || "").trim();
         if (!text || this.state.isSending) return;
 
         this.state.inputValue = "";
@@ -113,14 +114,16 @@ export class AiFloatingWidget extends Component {
 
     scrollToBottom() {
         window.requestAnimationFrame(() => {
-            if (this.messageListRef.el) {
-                this.messageListRef.el.scrollTop = this.messageListRef.el.scrollHeight;
+            const el = this.messageList();
+            if (el) {
+                el.scrollTop = el.scrollHeight;
             }
         });
     }
 }
 
-// Register as a persistent global systray item (present across all apps/modules)
-registry.category("systray").add("sale_ai_agent.floating_widget", {
+const aiFloatingSystrayItem = {
     Component: AiFloatingWidget,
-}, { sequence: 10 });
+};
+
+registry.category("systray").add("sale_ai_agent.floating_widget", aiFloatingSystrayItem, { sequence: 10 });

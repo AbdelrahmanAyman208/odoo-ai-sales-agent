@@ -127,7 +127,9 @@ function setupAiChatMinimize() {
         });
     });
 
-    observer.observe(document.body, { childList: true, subtree: true });
+    if (document.body) {
+        observer.observe(document.body, { childList: true, subtree: true });
+    }
 }
 
 // Initialize when web client assets are loaded

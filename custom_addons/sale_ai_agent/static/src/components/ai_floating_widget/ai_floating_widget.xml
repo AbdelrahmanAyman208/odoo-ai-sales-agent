@@ -6,7 +6,7 @@
             <button type="button" 
                     class="o_nav_entry btn btn-link p-0 position-relative text-white opacity-75 opacity-100-hover"
                     title="Open AI Operations Assistant"
-                    t-on-click="toggleOpen">
+                    t-on-click="this.toggleOpen">
                 <i class="fa fa-robot fa-lg text-info"></i>
                 <span class="position-absolute top-0 start-100 translate-middle p-1 bg-success border border-light rounded-circle">
                     <span class="visually-hidden">AI Ready</span>
@@ -14,13 +14,13 @@
             </button>
 
             <!-- Floating Non-Modal Chat Box (Never closes on route/module changes) -->
-            <div t-if="state.isOpen" 
+            <div t-if="this.state.isOpen" 
                  class="o_ai_floating_window shadow-lg rounded-3"
-                 t-att-class="{ 'o_ai_floating_minimized': state.isMinimized }">
+                 t-att-class="{ 'o_ai_floating_minimized': this.state.isMinimized }">
                 
                 <!-- Window Header -->
                 <div class="o_ai_floating_header d-flex align-items-center justify-content-between px-3 py-2 bg-primary text-white rounded-top-3"
-                     t-on-click="toggleMinimize">
+                     t-on-click="this.toggleMinimize">
                     <div class="d-flex align-items-center gap-2">
                         <i class="fa fa-robot"></i>
                         <span class="fw-bold">AI Operations Assistant</span>
@@ -31,39 +31,39 @@
                         <button type="button" 
                                 class="btn btn-sm btn-link text-white p-1"
                                 title="Minimize / Restore"
-                                t-on-click="toggleMinimize">
-                            <i t-if="!state.isMinimized" class="fa fa-minus"></i>
-                            <i t-if="state.isMinimized" class="fa fa-window-restore"></i>
+                                t-on-click="this.toggleMinimize">
+                            <i t-if="!this.state.isMinimized" class="fa fa-minus"></i>
+                            <i t-if="this.state.isMinimized" class="fa fa-window-restore"></i>
                         </button>
                         <!-- Close Button -->
                         <button type="button" 
                                 class="btn btn-sm btn-link text-white p-1"
                                 title="Close"
-                                t-on-click="closeChat">
+                                t-on-click="this.closeChat">
                             <i class="fa fa-times"></i>
                         </button>
                     </div>
                 </div>
 
                 <!-- Window Body (Hidden when minimized) -->
-                <div t-if="!state.isMinimized" class="o_ai_floating_body d-flex flex-column bg-white">
+                <div t-if="!this.state.isMinimized" class="o_ai_floating_body d-flex flex-column bg-white">
                     <!-- Message Feed -->
-                    <div class="o_ai_floating_feed flex-grow-1 p-3 overflow-auto" t-ref="messageList" style="height: 380px;">
-                        <t t-foreach="state.messages" t-as="m" t-key="m_index">
+                    <div class="o_ai_floating_feed flex-grow-1 p-3 overflow-auto" t-ref="this.messageList" style="height: 380px;">
+                        <t t-foreach="this.state.messages" t-as="m" t-key="m_index">
                             <div t-if="m.role === 'user'" class="d-flex justify-content-end mb-2">
                                 <div class="bg-primary text-white rounded-3 px-3 py-2 shadow-sm text-break" style="max-width: 85%;">
-                                    <t t-esc="m.content"/>
+                                    <t t-out="m.content"/>
                                 </div>
                             </div>
                             <div t-if="m.role === 'assistant'" class="d-flex justify-content-start mb-2">
                                 <div class="bg-light border rounded-3 px-3 py-2 shadow-sm text-dark text-break" style="max-width: 90%; white-space: pre-wrap;">
-                                    <t t-esc="m.content"/>
+                                    <t t-out="m.content"/>
                                 </div>
                             </div>
                         </t>
-                        <div t-if="state.isSending" class="d-flex align-items-center gap-2 text-muted fst-italic py-1">
+                        <div t-if="this.state.isSending" class="d-flex align-items-center gap-2 text-muted fst-italic py-1">
                             <i class="fa fa-circle-o-notch fa-spin text-primary"></i>
-                            <span t-esc="state.statusText"/>
+                            <span t-out="this.state.statusText"/>
                         </div>
                     </div>
 
@@ -73,13 +73,13 @@
                             <input type="text"
                                    class="form-control"
                                    placeholder="Ask AI agent (e.g. 'Create MO for 50 fridges')..."
-                                   t-model="state.inputValue"
-                                   t-on-keydown="onInputKeydown"
-                                   t-att-disabled="state.isSending"/>
+                                   t-model.proxy="this.state.inputValue"
+                                   t-on-keydown="this.onInputKeydown"
+                                   t-att-disabled="this.state.isSending"/>
                             <button class="btn btn-primary"
                                     type="button"
-                                    t-on-click="sendMessage"
-                                    t-att-disabled="state.isSending || !state.inputValue.trim()">
+                                    t-on-click="this.sendMessage"
+                                    t-att-disabled="this.state.isSending || !this.state.inputValue.trim()">
                                 <i class="fa fa-paper-plane"></i>
                             </button>
                         </div>
