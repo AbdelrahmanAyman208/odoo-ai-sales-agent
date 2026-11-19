@@ -100,9 +100,8 @@ def get_compiled_use_case_graph(env):
     pool = get_checkpoint_pool(env)
     builder = build_use_case_graph()
 
-    with pool.connection() as conn:
-        checkpointer = PostgresSaver(conn)
-        _COMPILED_USE_CASE_GRAPH = builder.compile(checkpointer=checkpointer)
+    checkpointer = PostgresSaver(pool)
+    _COMPILED_USE_CASE_GRAPH = builder.compile(checkpointer=checkpointer)
 
     _logger.info("LangGraph Use-Case Graph successfully compiled with PostgresSaver checkpointer.")
     return _COMPILED_USE_CASE_GRAPH
