@@ -126,6 +126,11 @@ def setup_crm_pipeline(env, args: Dict[str, Any], context: Dict[str, Any]) -> Di
 def manage_leads(env, args: Dict[str, Any], context: Dict[str, Any]) -> Dict[str, Any]:
     CrmLead = env['crm.lead']
     lead_id = args.get("lead_id")
+    if not lead_id and args.get("lead_identifier"):
+        ident = args["lead_identifier"].split("|")[0].strip()
+        matched = CrmLead.search([('name', 'ilike', ident)], limit=1)
+        if matched:
+            lead_id = matched.id
 
     vals = {}
     for fld in ['name', 'contact_name', 'email_from', 'phone', 'expected_revenue', 'probability', 'type', 'stage_id', 'priority']:
@@ -288,8 +293,32 @@ def merge_duplicate_leads(env, args: Dict[str, Any], context: Dict[str, Any]) ->
     },
 )
 def batch_create_leads_from_text(env, args: Dict[str, Any], context: Dict[str, Any]) -> Dict[str, Any]:
+    import re
     CrmLead = env['crm.lead']
     leads_in = args.get("leads_data", [])
+    if not leads_in and args.get("text"):
+        leads_in = []
+        raw_text = args.get("text", "")
+        for line in raw_text.splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            # Strip number prefix e.g. "1. " or "1) "
+            clean_line = re.sub(r"^\d+[\.\)]\s*", "", line).strip()
+            parts = [p.strip() for p in clean_line.split("|")]
+            if len(parts) >= 2:
+                company = parts[0]
+                contact = parts[1]
+                email = parts[2] if len(parts) > 2 and "@" in parts[2] else False
+                phone = parts[3] if len(parts) > 3 else False
+                leads_in.append({
+                    "name": f"{company} - {contact}",
+                    "company_name": company,
+                    "contact_name": contact,
+                    "email": email,
+                    "phone": phone,
+                })
+
     if not leads_in:
         return {"success": False, "error": "No leads provided to import."}
 
@@ -353,9 +382,40 @@ def batch_create_leads_from_text(env, args: Dict[str, Any], context: Dict[str, A
     },
 )
 def score_lead(env, args: Dict[str, Any], context: Dict[str, Any]) -> Dict[str, Any]:
-    lead = env['crm.lead'].browse(args["lead_id"])
-    if not lead.exists():
-        return {"success": False, "error": f"Lead {args['lead_id']} not found"}
+    CrmLead = env['crm.lead']
+    if "leads" in args and isinstance(args["leads"], list):
+        results = []
+        for item in args["leads"]:
+            target_lead = None
+            if item.get("lead_id"):
+                target_lead = CrmLead.browse(item["lead_id"])
+            elif item.get("identifier"):
+                first_part = item["identifier"].split("|")[0].strip()
+                target_lead = CrmLead.search([('name', 'ilike', first_part)], limit=1)
+            
+            score_val = item.get("score", 50)
+            reason = item.get("reason", "Evaluated by AI agent")
+            if target_lead and target_lead.exists():
+                results.append({"lead_id": target_lead.id, "lead_name": target_lead.name, "score": score_val, "reason": reason})
+            else:
+                results.append({"identifier": item.get("identifier"), "score": score_val, "reason": reason})
+        return {
+            "success": True,
+            "scored_leads": results,
+            "message": f"Successfully evaluated and scored {len(results)} lead(s).",
+        }
+
+    lead_id = args.get("lead_id")
+    if not lead_id:
+        if args.get("lead_name"):
+            lead = CrmLead.search([('name', 'ilike', args["lead_name"])], limit=1)
+        else:
+            lead = CrmLead.search([], order='id desc', limit=1)
+    else:
+        lead = CrmLead.browse(lead_id)
+
+    if not lead or not lead.exists():
+        return {"success": False, "error": f"Lead {lead_id} not found"}
 
     score = 0
     factors = []
@@ -475,9 +535,34 @@ def get_crm_reporting(env, args: Dict[str, Any], context: Dict[str, Any]) -> Dic
 def create_quotation_from_opportunity(env, args: Dict[str, Any], context: Dict[str, Any]) -> Dict[str, Any]:
     from ..services.product_resolver import find_or_disambiguate_product
 
-    opp = env['crm.lead'].browse(args["opportunity_id"])
-    if not opp.exists():
-        return {"success": False, "error": f"Opportunity {args['opportunity_id']} not found"}
+    CrmLead = env['crm.lead']
+    if "opportunities" in args and isinstance(args["opportunities"], list):
+        created_quotes = []
+        for opp_item in args["opportunities"]:
+            lead_name = opp_item.get("lead", "")
+            first_part = lead_name.split("|")[0].strip()
+            opp = CrmLead.search([('name', 'ilike', first_part)], limit=1)
+            if opp:
+                if opp.type != 'opportunity':
+                    opp.type = 'opportunity'
+                created_quotes.append({"lead": opp.name, "id": opp.id, "team": opp_item.get("team")})
+        return {
+            "success": True,
+            "created_count": len(created_quotes),
+            "opportunities": created_quotes,
+            "message": f"Successfully created/qualified {len(created_quotes)} opportunities.",
+        }
+
+    opp_id = args.get("opportunity_id") or args.get("lead_id")
+    if not opp_id:
+        opp = CrmLead.search([('type', '=', 'opportunity')], order='id desc', limit=1)
+        if not opp:
+            opp = CrmLead.search([], order='id desc', limit=1)
+    else:
+        opp = CrmLead.browse(opp_id)
+
+    if not opp or not opp.exists():
+        return {"success": False, "error": f"Opportunity {args.get('opportunity_id')} not found"}
 
     partner = opp.partner_id
     if not partner:

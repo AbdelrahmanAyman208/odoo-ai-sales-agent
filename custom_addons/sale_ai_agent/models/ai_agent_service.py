@@ -173,6 +173,7 @@ class AiAgentService(models.AbstractModel):
         try:
             from ..graph.runtime import run_use_case_through_graph
             graph_res = run_use_case_through_graph(self.env, use_case.id)
+            use_case.invalidate_recordset()
 
             task_list_str = "\n".join([
                 f"- {'✓' if t.state=='done' else '⏳'} **{t.title}**: {t.result_summary or t.state}"
